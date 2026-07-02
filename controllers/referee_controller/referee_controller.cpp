@@ -145,10 +145,10 @@ int main(int argc, char** argv) {
     uint32_t frame = 0;
 
     std::vector<travesim::webots_adapter::Robot> yellow_robots;
-    yellow_robots.reserve(robots_per_team);
+    yellow_robots.resize(robots_per_team);
 
     std::vector<travesim::webots_adapter::Robot> blue_robots;
-    blue_robots.reserve(robots_per_team);
+    blue_robots.resize(robots_per_team);
 
     travesim::webots_adapter::Robot ball((*robots)["VssBall"]);
 
