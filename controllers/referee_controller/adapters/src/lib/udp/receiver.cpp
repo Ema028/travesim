@@ -114,7 +114,7 @@ void Receiver::force_specific_source(bool specific_source) {
 };
 
 void Receiver::set_receiver_endpoint(const std::string receiver_address, const short receiver_port) {
-    const boost::asio::ip::address receiver_boost_addr = boost::asio::ip::address::from_string(receiver_address);
+    const boost::asio::ip::address receiver_boost_addr = boost::asio::ip::make_address(receiver_address);
     this->receiver_endpoint = boost::asio::ip::udp::endpoint(receiver_boost_addr, receiver_port);
 };
 

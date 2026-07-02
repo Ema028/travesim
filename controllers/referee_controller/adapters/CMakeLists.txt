@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS system thread)
+cmake_policy(SET CMP0167 OLD)
+set(Boost_NO_BOOST_CMAKE ON)
+find_package(Boost REQUIRED COMPONENTS thread)
 
 ## Add subdirectories
 add_subdirectory(proto)

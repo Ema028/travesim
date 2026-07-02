@@ -35,7 +35,7 @@ MulticastReceiver::~MulticastReceiver() {
 };
 
 void MulticastReceiver::set_multicast_address(const std::string multicast_address) {
-    const boost::asio::ip::address multicast_boost_addr = boost::asio::ip::address::from_string(multicast_address);
+    const boost::asio::ip::address multicast_boost_addr = boost::asio::ip::make_address(multicast_address);
     this->multicast_address = multicast_boost_addr;
 };
 

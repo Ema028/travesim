@@ -11,8 +11,10 @@
  */
 
 #include <ros/console.h>
+#include <cmath>
 
 #include "travesim_adapters/protobuf/team_receiver.hpp"
+#include <cmath>
 
 /*****************************************
  * Private Constants
@@ -98,7 +100,7 @@ void TeamReceiver::packet_pb_msg_to_team_command(fira_message::sim_to_ref::Packe
                 continue;
             }
 
-            if (isnanf(robot_cmd.wheel_left()) || isnanf(robot_cmd.wheel_right())) {
+            if (std::isnan(robot_cmd.wheel_left()) || std::isnan(robot_cmd.wheel_right())) {
                 ROS_WARN_STREAM("Error: Invalid robot speed in team receiver!");
                 continue;
             }

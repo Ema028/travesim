@@ -66,7 +66,7 @@ size_t Sender::send(const char* buffer, const size_t buffer_size) {
 };
 
 void Sender::set_receiver_endpoint(const std::string receiver_address, const short receiver_port) {
-    const boost::asio::ip::address receiver_boost_addr = boost::asio::ip::address::from_string(receiver_address);
+    const boost::asio::ip::address receiver_boost_addr = boost::asio::ip::make_address(receiver_address);
 
     this->endpoint = boost::asio::ip::udp::endpoint(receiver_boost_addr, receiver_port);
 };
