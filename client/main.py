@@ -43,7 +43,12 @@ def attacker_command(frame: Frame, yellowteam: bool) -> tuple[float, float]:  # 
     ball = frame.ball
     robot = frame.robots_yellow[2] if yellowteam else frame.robots_blue[2]
 
-    return drive_to(robot, ball.x, ball.y)
+    dx = ball.x - robot.x
+    dy = ball.y - robot.y
+    dist = math.sqrt(dx*dx + dy*dy)
+
+    if dist > 0.1:  return drive_to(robot, ball.x, ball.y)
+    else:           return 1,1
 
 
 def main(yellow_team: bool) -> None:  # noqa: FBT001
