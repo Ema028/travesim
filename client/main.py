@@ -2,6 +2,7 @@
 import socket
 import math
 
+from threading import Thread
 from vssproto.simulation.command_pb2 import Command, Commands
 from vssproto.simulation.common_pb2 import Frame
 from vssproto.simulation.packet_pb2 import Environment, Packet
@@ -51,11 +52,12 @@ def main(yellow_team: bool) -> None:  # noqa: FBT001
     ###################################################################################
 
     sock_in = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock_in.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock_in.bind(("224.0.0.1", 10002))
-
     sock_out = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock_out.connect(("127.0.0.1", 20012))
-
+    if yellow_team: sock_out.connect(("127.0.0.1", 20012))
+    else:           sock_out.connect(("127.0.0.1", 20013))
+    
     ###################################################################################
     # Loop start
     ###################################################################################
@@ -74,17 +76,6 @@ def main(yellow_team: bool) -> None:  # noqa: FBT001
             environment_data = Environment()
             environment_data.ParseFromString(data)
             frame = environment_data.frame
-
-            print("Bola:")
-            print(frame.ball)
-
-            for i, robot in enumerate(frame.robots_yellow):
-                print(f"Yellow {i}:")
-                print(robot)
-
-            for i, robot in enumerate(frame.robots_blue):
-                print(f"Blue {i}:")
-                print(robot)
 
             ###########################################################################
             # Process data from simulator
@@ -148,7 +139,9 @@ def main(yellow_team: bool) -> None:  # noqa: FBT001
         sock_out.close()
         sock_in.close()
 
-
 if __name__ == "__main__":
-    main(yellow_team=True)
-    main(yellow_team=False)
+    yellow = Thread(target=main, args=(True,))
+    blue   = Thread(target=main, args=(False,))
+
+    yellow.start()
+    blue.start()
