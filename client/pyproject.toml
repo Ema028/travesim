@@ -1,0 +1,12 @@
+[tool.ruff]
+
+line-length = 100
+indent-width = 4
+
+# Assume Python 3.9
+target-version = "py39"
+
+[tool.ruff.lint]
+
+select = ["ALL"]
+ignore = ["ERA001", "T201", "D100", "UP009", "D401", "D202", "D103"]
