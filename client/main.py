@@ -9,13 +9,16 @@ from vssproto.simulation.packet_pb2 import Environment, Packet
 
 MAX_VEL = 10
 
+def normalize_angle(a):
+    return math.atan2(math.sin(a), math.cos(a))
+
 def drive_to(robot, target_x, target_y):
     dx = target_x - robot.x
     dy = target_y - robot.y
 
     dist = math.sqrt(dx**2 + dy**2)
     angle= math.atan2(dy, dx) 
-    error= angle - robot.orientation
+    error= normalize_angle(angle - robot.orientation)
 
     kp_angle = 2
     kp_dist  = 3
