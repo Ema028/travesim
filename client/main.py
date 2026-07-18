@@ -7,6 +7,8 @@ from vssproto.simulation.command_pb2 import Command, Commands
 from vssproto.simulation.common_pb2 import Frame
 from vssproto.simulation.packet_pb2 import Environment, Packet
 
+MAX_VEL = 10
+
 def drive_to(robot, target_x, target_y):
     dx = target_x - robot.x
     dy = target_y - robot.y
@@ -20,7 +22,9 @@ def drive_to(robot, target_x, target_y):
     
     vel  = kp_dist*dist
     kerro= kp_angle*error
-    return vel-kerro, vel+kerro
+    left = max(-MAX_VEL, min(MAX_VEL, vel-kerro))
+    right= max(-MAX_VEL, min(MAX_VEL, vel+kerro))
+    return left, right
 
 def goalie_command(frame: Frame, yellowteam: bool) -> tuple[float, float]:  # noqa: ARG001, FBT001
     ball = frame.ball
@@ -48,7 +52,7 @@ def attacker_command(frame: Frame, yellowteam: bool) -> tuple[float, float]:  # 
     dist = math.sqrt(dx*dx + dy*dy)
 
     if dist > 0.1:  return drive_to(robot, ball.x, ball.y)
-    else:           return 1,1
+    else:           return MAX_VEL,MAX_VEL
 
 
 def main(yellow_team: bool) -> None:  # noqa: FBT001
