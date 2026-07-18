@@ -2,12 +2,18 @@
 import socket
 import math
 
+from random import randint
 from threading import Thread
 from vssproto.simulation.command_pb2 import Command, Commands
 from vssproto.simulation.common_pb2 import Frame
 from vssproto.simulation.packet_pb2 import Environment, Packet
 
 MAX_VEL = 10
+GOAL    = 0.65
+
+ID_GOLEIRO = 2
+ID_DEFESA  = 1
+ID_ATACANTE= 0
 
 def normalize_angle(a):
     return math.atan2(math.sin(a), math.cos(a))
@@ -19,43 +25,49 @@ def drive_to(robot, target_x, target_y):
     dist = math.sqrt(dx**2 + dy**2)
     angle= math.atan2(dy, dx) 
     error= normalize_angle(angle - robot.orientation)
+   
+    if abs(error) > math.pi: 
+        direction = -1
+        error     = normalize_angle(error - math.pi)
+    else: 
+        direction = 1
 
-    kp_angle = 2
-    kp_dist  = 3
+    kp_angle = 5
+    kp_dist  = 15
     
-    vel  = kp_dist*dist
+    vel  = kp_dist*dist*direction
     kerro= kp_angle*error
     left = max(-MAX_VEL, min(MAX_VEL, vel-kerro))
     right= max(-MAX_VEL, min(MAX_VEL, vel+kerro))
     return left, right
 
 def goalie_command(frame: Frame, yellowteam: bool) -> tuple[float, float]:  # noqa: ARG001, FBT001
-    ball = frame.ball
-    robot = frame.robots_yellow[0] if yellowteam else frame.robots_blue[0]
+    ball  = frame.ball
+    robot = frame.robots_yellow[ID_GOLEIRO] if yellowteam else frame.robots_blue[ID_GOLEIRO]
 
-    goal_x = 0.70 if yellowteam else -0.70
+    goal_x = GOAL if yellowteam else -GOAL
     return drive_to(robot, goal_x, ball.y)
 
 
 def defender_command(frame: Frame, yellowteam: bool) -> tuple[float, float]:  # noqa: ARG001, FBT001
-    ball = frame.ball
-    robot = frame.robots_yellow[1] if yellowteam else frame.robots_blue[1]
+    ball  = frame.ball
+    robot = frame.robots_yellow[ID_DEFESA] if yellowteam else frame.robots_blue[ID_DEFESA]
 
-    goal_x = 0.70 if yellowteam else -0.70
+    goal_x   = GOAL if yellowteam else -GOAL
     target_x = (goal_x + ball.x) / 2
     return drive_to(robot, target_x, ball.y)
 
 
 def attacker_command(frame: Frame, yellowteam: bool) -> tuple[float, float]:  # noqa: ARG001, FBT001
     ball = frame.ball
-    robot = frame.robots_yellow[2] if yellowteam else frame.robots_blue[2]
+    robot = frame.robots_yellow[ID_ATACANTE] if yellowteam else frame.robots_blue[ID_ATACANTE]
 
     dx = ball.x - robot.x
     dy = ball.y - robot.y
     dist = math.sqrt(dx*dx + dy*dy)
 
     if dist > 0.1:  return drive_to(robot, ball.x, ball.y)
-    else:           return MAX_VEL,MAX_VEL
+    else:           return MAX_VEL + randint(0,1), MAX_VEL + randint(0,1)
 
 
 def main(yellow_team: bool) -> None:  # noqa: FBT001
@@ -115,7 +127,7 @@ def main(yellow_team: bool) -> None:  # noqa: FBT001
             cmd_packet = Commands()
             cmd_packet.robot_commands.append(
                 Command(
-                    id=0,
+                    id=ID_GOLEIRO,
                     yellowteam=yellow_team,
                     wheel_left=goalie_left_wheel,
                     wheel_right=goalie_right_wheel,
@@ -124,7 +136,7 @@ def main(yellow_team: bool) -> None:  # noqa: FBT001
 
             cmd_packet.robot_commands.append(
                 Command(
-                    id=1,
+                    id=ID_DEFESA,
                     yellowteam=yellow_team,
                     wheel_left=defender_left_wheel,
                     wheel_right=defender_right_wheel,
@@ -133,7 +145,7 @@ def main(yellow_team: bool) -> None:  # noqa: FBT001
 
             cmd_packet.robot_commands.append(
                 Command(
-                    id=2,
+                    id=ID_ATACANTE,
                     yellowteam=yellow_team,
                     wheel_left=attacker_left_wheel,
                     wheel_right=attacker_right_wheel,
