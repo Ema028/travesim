@@ -2,7 +2,6 @@
 import socket
 import math
 
-from random import randint
 from threading import Thread
 from vssproto.simulation.command_pb2 import Command, Commands
 from vssproto.simulation.common_pb2 import Frame
@@ -45,8 +44,9 @@ def goalie_command(frame: Frame, yellowteam: bool) -> tuple[float, float]:  # no
     ball  = frame.ball
     robot = frame.robots_yellow[ID_GOLEIRO] if yellowteam else frame.robots_blue[ID_GOLEIRO]
 
-    goal_x = GOAL if yellowteam else -GOAL
-    return drive_to(robot, goal_x, ball.y)
+    goal_x   = GOAL if yellowteam else -GOAL
+    target_y = max(-0.35, min(0.35, ball.y))
+    return drive_to(robot, goal_x, target_y)
 
 
 def defender_command(frame: Frame, yellowteam: bool) -> tuple[float, float]:  # noqa: ARG001, FBT001
@@ -55,19 +55,25 @@ def defender_command(frame: Frame, yellowteam: bool) -> tuple[float, float]:  # 
 
     goal_x   = GOAL if yellowteam else -GOAL
     target_x = (goal_x + ball.x) / 2
-    return drive_to(robot, target_x, ball.y)
+    target_y = max(-0.45, min(0.45, ball.y))
+    return drive_to(robot, target_x, target_y)
 
 
 def attacker_command(frame: Frame, yellowteam: bool) -> tuple[float, float]:  # noqa: ARG001, FBT001
-    ball = frame.ball
-    robot = frame.robots_yellow[ID_ATACANTE] if yellowteam else frame.robots_blue[ID_ATACANTE]
+    ball   = frame.ball
+    robot  = frame.robots_yellow[ID_ATACANTE] if yellowteam else frame.robots_blue[ID_ATACANTE] 
+    goal_x = GOAL if yellowteam else -GOAL
+    goal_y = max(-0.35, min(0.35, ball.y))
 
     dx = ball.x - robot.x
     dy = ball.y - robot.y
     dist = math.sqrt(dx*dx + dy*dy)
 
-    if dist > 0.1:  return drive_to(robot, ball.x, ball.y)
-    else:           return MAX_VEL + randint(0,1), MAX_VEL + randint(0,1)
+    if yellowteam: target_x = ball.x - 0.1
+    else:          target_x = ball.x + 0.1
+
+    if dist > 0.07: return drive_to(robot, target_x, ball.y)
+    else:           return drive_to(robot, goal_x, goal_y) 
 
 
 def main(yellow_team: bool) -> None:  # noqa: FBT001
